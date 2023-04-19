@@ -1,9 +1,11 @@
 defmodule SandrabbitWeb.PageController do
   use SandrabbitWeb, :controller
+  alias Sandrabbit.Messages
+  alias Sandrabbit.Messages.Message
 
-  def home(conn, _params) do
-    # The home page is often custom made,
-    # so skip the default app layout.
-    render(conn, :home, layout: false)
+  def create(conn, %{"message" => params}) do
+    with {:ok, %Message{from: from}} <- Messages.create_message(params) do
+      text(conn, "Hi #{from}, I got your message!")
+    end
   end
 end
