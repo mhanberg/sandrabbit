@@ -13,13 +13,12 @@ defmodule Sandrabbit.Application do
       # Start the Ecto repository
       Sandrabbit.Repo,
       # Start the PubSub system
+      Sandrabbit.Consumer,
       {Phoenix.PubSub, name: Sandrabbit.PubSub},
       # Start Finch
       {Finch, name: Sandrabbit.Finch},
       # Start the Endpoint (http/https)
       SandrabbitWeb.Endpoint
-      # Start a worker by calling: Sandrabbit.Worker.start_link(arg)
-      # {Sandrabbit.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

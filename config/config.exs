@@ -20,6 +20,14 @@ config :sandrabbit, SandrabbitWeb.Endpoint,
   pubsub_server: Sandrabbit.PubSub,
   live_view: [signing_salt: "uXIvDsEc"]
 
+config :amqp,
+  connections: [
+    messages: [url: "amqp://guest:guest@localhost"]
+  ],
+  channels: [
+    messages: [connection: :messages]
+  ]
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
