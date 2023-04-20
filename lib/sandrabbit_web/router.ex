@@ -14,10 +14,11 @@ defmodule SandrabbitWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", SandrabbitWeb do
+  scope "/api", SandrabbitWeb do
     pipe_through :api
 
     post "/messages", PageController, :create
+    get "/messages/:title", PageController, :show
   end
 
   scope "/", SandrabbitWeb do

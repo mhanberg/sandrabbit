@@ -2,13 +2,21 @@ defmodule SandrabbitWeb.PageController do
   use SandrabbitWeb, :controller
 
   plug :sandbox
+  plug :get_caches
+
+  def show(conn, %{"title" => title}) do
+    message = Sandrabbit.Messages.get_message!(title, conn.private.message_cache)
+
+    json(conn, %{message: message.body})
+  end
 
   def create(conn, %{"message" => params}) do
     {:ok, chan} = AMQP.Application.get_channel(:messages)
 
     headers = [
       {"sandrabbit-request", :binary, :erlang.term_to_binary(self())},
-      {"sandrabbit-user-agent", :binary, conn.private.useragent}
+      {"sandrabbit-user-agent", :binary, conn.private.useragent},
+      {"sandrabbit-message-cache", :binary, :erlang.term_to_binary(conn.private.message_cache)}
     ]
 
     with :ok <-
@@ -30,6 +38,12 @@ defmodule SandrabbitWeb.PageController do
         |> put_status(500)
         |> text("Internal Server Error")
     end
+  end
+
+  defp get_caches(%{private: private} = conn, _) do
+    private = Map.put_new(private, :message_cache, :message_cache)
+
+    Map.put(conn, :private, private)
   end
 
   if Mix.env() == :test do

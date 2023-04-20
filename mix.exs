@@ -50,7 +50,8 @@ defmodule Sandrabbit.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:amqp, "~> 3.2"}
+      {:amqp, "~> 3.2"},
+      {:cachex, "~> 3.6"}
     ]
   end
 

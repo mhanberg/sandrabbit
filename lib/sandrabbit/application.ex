@@ -13,6 +13,7 @@ defmodule Sandrabbit.Application do
       # Start the Ecto repository
       Sandrabbit.Repo,
       # Start the PubSub system
+      Supervisor.child_spec({Cachex, name: :message_cache}, id: :message_cache),
       Sandrabbit.Consumer,
       {Phoenix.PubSub, name: Sandrabbit.PubSub},
       # Start Finch

@@ -49,16 +49,18 @@ defmodule Sandrabbit.Consumer do
            redelivered: redelivered,
            headers: [
              {"sandrabbit-request", :binary, pid},
-             {"sandrabbit-user-agent", :binary, useragent}
+             {"sandrabbit-user-agent", :binary, useragent},
+             {"sandrabbit-message-cache", :binary, cache},
            ]
          }},
         chan
       ) do
     pid = :erlang.binary_to_term(pid)
+    cache = :erlang.binary_to_term(cache)
 
     Task.async(
       wrap(useragent, fn ->
-        consume(chan, tag, redelivered, payload, pid)
+        consume(chan, tag, redelivered, payload, pid, cache)
       end)
     )
     |> Task.await()
@@ -83,9 +85,9 @@ defmodule Sandrabbit.Consumer do
     :ok = Queue.bind(chan, @queue, @exchange)
   end
 
-  defp consume(channel, tag, redelivered, payload, pid) do
+  defp consume(channel, tag, redelivered, payload, pid, cache) do
     with {:ok, params} <- Jason.decode(payload),
-         {:ok, %Message{from: from}} <- Messages.create_message(params) do
+         {:ok, %Message{from: from}} <- Messages.create_message(params, cache) do
       Logger.debug("Received message from #{from}")
       Basic.ack(channel, tag)
       send(pid, {:consumer, {:ok, "Received message from #{from}"}})

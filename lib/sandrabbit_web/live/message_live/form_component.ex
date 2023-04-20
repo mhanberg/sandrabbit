@@ -70,7 +70,7 @@ defmodule SandrabbitWeb.MessageLive.FormComponent do
   end
 
   defp save_message(socket, :new, message_params) do
-    case Messages.create_message(message_params) do
+    case Messages.create_message(message_params, :message_cache) do
       {:ok, message} ->
         notify_parent({:saved, message})
 

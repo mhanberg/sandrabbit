@@ -28,14 +28,18 @@ defmodule Sandrabbit.Messages do
 
   ## Examples
 
-      iex> get_message!(123)
+      iex> get_message!(123, :cache)
       %Message{}
 
-      iex> get_message!(456)
+      iex> get_message!(456, :cache)
       ** (Ecto.NoResultsError)
 
   """
-  def get_message!(id), do: Repo.get!(Message, id)
+  def get_message!(title, cache) do
+    with nil <- Cachex.get!(cache, title) do
+      Repo.get_by!(Message, title: title) |> tap(fn m -> Cachex.put!(cache, title, m) end)
+    end
+  end
 
   @doc """
   Creates a message.
@@ -49,10 +53,14 @@ defmodule Sandrabbit.Messages do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_message(attrs \\ %{}) do
+  def create_message(attrs, cache) do
     %Message{}
     |> Message.changeset(attrs)
     |> Repo.insert()
+    |> tap(fn
+      {:ok, message} -> Cachex.put!(cache, message.title, message)
+      _ -> :noop
+    end)
   end
 
   @doc """

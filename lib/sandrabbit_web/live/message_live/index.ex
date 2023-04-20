@@ -17,7 +17,7 @@ defmodule SandrabbitWeb.MessageLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Message")
-    |> assign(:message, Messages.get_message!(id))
+    |> assign(:message, Messages.get_message!(id, :message_cache))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -39,7 +39,7 @@ defmodule SandrabbitWeb.MessageLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    message = Messages.get_message!(id)
+    message = Messages.get_message!(id, :message_cache)
     {:ok, _} = Messages.delete_message(message)
 
     {:noreply, stream_delete(socket, :messages, message)}
