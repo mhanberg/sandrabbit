@@ -31,12 +31,7 @@
   </:action>
 </.table>
 
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="message-modal"
-  show
-  on_cancel={JS.patch(~p"/")}
->
+<.modal :if={@live_action in [:new, :edit]} id="message-modal" show on_cancel={JS.patch(~p"/")}>
   <.live_component
     module={SandrabbitWeb.MessageLive.FormComponent}
     id={@message.id || :new}

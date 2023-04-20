@@ -47,22 +47,32 @@ defmodule Sandrabbit.Consumer do
          %{
            delivery_tag: tag,
            redelivered: redelivered,
-           headers: [{"sandrabbit-request", :binary, pid}]
+           headers: [
+             {"sandrabbit-request", :binary, pid},
+             {"sandrabbit-user-agent", :binary, useragent}
+           ]
          }},
         chan
       ) do
     pid = :erlang.binary_to_term(pid)
-    consume(chan, tag, redelivered, payload, pid)
+
+    Task.async(
+      wrap(useragent, fn ->
+        consume(chan, tag, redelivered, payload, pid)
+      end)
+    )
+    |> Task.await()
+
     {:noreply, chan}
   end
 
   defp setup_queue(chan) do
-    {:ok, _} = Queue.declare(chan, @queue_error, durable: true)
+    {:ok, _} = Queue.declare(chan, @queue_error, durable: false)
 
     # Messages that cannot be delivered to any consumer in the main queue will be routed to the error queue
     {:ok, _} =
       Queue.declare(chan, @queue,
-        durable: true,
+        durable: false,
         arguments: [
           {"x-dead-letter-exchange", :longstr, ""},
           {"x-dead-letter-routing-key", :longstr, @queue_error}
@@ -89,5 +99,18 @@ defmodule Sandrabbit.Consumer do
     exception ->
       :ok = Basic.reject(channel, tag, requeue: not redelivered)
       reraise exception, __STACKTRACE__
+  end
+
+  if Mix.env() == :test do
+    defp wrap(useragent, func) do
+      fn ->
+        Phoenix.Ecto.SQL.Sandbox.allow(useragent, Ecto.Adapters.SQL.Sandbox)
+        func.()
+      end
+    end
+  else
+    defp wrap(_, func) do
+      func
+    end
   end
 end

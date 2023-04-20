@@ -1,4 +1,4 @@
-defmodule SandrabbitWeb.PageControllerTest do
+defmodule SandrabbitWeb.PageController2Test do
   use SandrabbitWeb.ConnCase, async: true
 
   test "POST /messages", %{conn: conn} do

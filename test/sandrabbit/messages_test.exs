@@ -35,7 +35,12 @@ defmodule Sandrabbit.MessagesTest do
 
     test "update_message/2 with valid data updates the message" do
       message = message_fixture()
-      update_attrs = %{body: "some updated body", from: "some updated from", title: "some updated title"}
+
+      update_attrs = %{
+        body: "some updated body",
+        from: "some updated from",
+        title: "some updated title"
+      }
 
       assert {:ok, %Message{} = message} = Messages.update_message(message, update_attrs)
       assert message.body == "some updated body"

@@ -16,7 +16,12 @@
 
 <.back navigate={~p"/"}>Back to messages</.back>
 
-<.modal :if={@live_action == :edit} id="message-modal" show on_cancel={JS.patch(~p"/messages/#{@message}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="message-modal"
+  show
+  on_cancel={JS.patch(~p"/messages/#{@message}")}
+>
   <.live_component
     module={SandrabbitWeb.MessageLive.FormComponent}
     id={@message.id}
