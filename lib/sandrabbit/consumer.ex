@@ -21,7 +21,7 @@ defmodule Sandrabbit.Consumer do
     setup_queue(chan)
 
     # Limit unacknowledged messages to 10
-    :ok = Basic.qos(chan, prefetch_count: 10)
+    :ok = Basic.qos(chan, prefetch_count: 0)
     # Register the GenServer process as a consumer
     {:ok, _consumer_tag} = Basic.consume(chan, @queue)
     {:ok, chan}
@@ -50,13 +50,13 @@ defmodule Sandrabbit.Consumer do
            headers: [
              {"sandrabbit-request", :binary, pid},
              {"sandrabbit-user-agent", :binary, useragent},
-             {"sandrabbit-message-cache", :binary, cache},
+             {"sandrabbit-message-cache", :binary, cache}
            ]
          }},
         chan
       ) do
-    pid = :erlang.binary_to_term(pid)
-    cache = :erlang.binary_to_term(cache)
+    pid = pid |> Base.decode64!() |> :erlang.binary_to_term()
+    cache = cache |> Base.decode64!() |> :erlang.binary_to_term()
 
     Task.async(
       wrap(useragent, fn ->
@@ -106,7 +106,7 @@ defmodule Sandrabbit.Consumer do
   if Mix.env() == :test do
     defp wrap(useragent, func) do
       fn ->
-        Phoenix.Ecto.SQL.Sandbox.allow(useragent, Ecto.Adapters.SQL.Sandbox)
+        :ok = Phoenix.Ecto.SQL.Sandbox.allow(useragent, Ecto.Adapters.SQL.Sandbox)
         func.()
       end
     end

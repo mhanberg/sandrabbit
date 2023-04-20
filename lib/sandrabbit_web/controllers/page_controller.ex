@@ -14,9 +14,10 @@ defmodule SandrabbitWeb.PageController do
     {:ok, chan} = AMQP.Application.get_channel(:messages)
 
     headers = [
-      {"sandrabbit-request", :binary, :erlang.term_to_binary(self())},
+      {"sandrabbit-request", :binary, :erlang.term_to_binary(self()) |> Base.encode64()},
       {"sandrabbit-user-agent", :binary, conn.private.useragent},
-      {"sandrabbit-message-cache", :binary, :erlang.term_to_binary(conn.private.message_cache)}
+      {"sandrabbit-message-cache", :binary,
+       :erlang.term_to_binary(conn.private.message_cache) |> Base.encode64()}
     ]
 
     with :ok <-

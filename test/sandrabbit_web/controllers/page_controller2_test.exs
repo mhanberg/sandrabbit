@@ -1,32 +1,40 @@
 defmodule SandrabbitWeb.PageController2Test do
   use SandrabbitWeb.ConnCase, async: true
 
-  test "POST /messages", %{conn: conn} do
-    title = "The Day in the Life of a Coder"
-    from = "Scott 'The #2 Coder' Hanberg"
+  setup %{conn: conn, module: module} do
+    cache = :"message-#{module}"
+    start_supervised!(Supervisor.child_spec({Cachex, name: cache}, id: cache))
 
-    message = """
-    Programming is very difficult, I barely make it through the day.
-    """
+    conn = put_private(conn, :message_cache, cache)
 
-    conn =
-      post(conn, ~p"/api/messages", %{
-        message: %{
-          title: title,
-          body: message,
-          from: from
-        }
-      })
+    [conn: conn]
+  end
 
-    assert text_response(conn, 201) == "Received message from #{from}"
+  for i <- 1..1000 do
+    test "POST /messages #{i}", %{conn: conn} do
+      title = "The Day in the Life of a Coder"
+      from = "Scott 'The #2 Coder' Hanberg"
 
-    assert [%{title: ^title, body: ^message}] = Sandrabbit.Messages.list_messages()
+      message = """
+      Programming is very difficult, I barely make it through the day.
+      """
 
-    conn =
-      conn
-      |> recycle()
-      |> get(~p"/api/messages/#{title}")
+      response_conn =
+        post(conn, ~p"/api/messages", %{
+          message: %{
+            title: title,
+            body: message,
+            from: from
+          }
+        })
 
-    assert %{"message" => ^message} = json_response(conn, 200)
+      assert text_response(response_conn, 201) == "Received message from #{from}"
+
+      assert [%{title: ^title, body: ^message}] = Sandrabbit.Messages.list_messages()
+
+      response_conn = get(conn, ~p"/api/messages/#{title}")
+
+      assert %{"message" => ^message} = json_response(response_conn, 200)
+    end
   end
 end
